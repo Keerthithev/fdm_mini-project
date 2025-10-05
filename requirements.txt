@@ -1,6 +1,7 @@
-pandas==2.2.2
-numpy==1.26.4
-scikit-learn==1.6.1
-streamlit==1.37.1
-joblib==1.4.2
-matplotlib==3.8.4
+pandas==2.3.3
+numpy==2.3.3
+scikit-learn==1.7.2
+streamlit==1.50.0
+joblib==1.5.2
+matplotlib==3.10.6
+pyarrow==21.0.0
