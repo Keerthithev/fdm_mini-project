@@ -669,6 +669,39 @@ def main():
     model = load_model(default_model_path)
     df = safe_read_csv(default_data_path) if os.path.exists(default_data_path) else None
 
+    # Fallback: if persisted model failed to load, try training a baseline from bundled CSV
+    if model is None and df is not None and not df.empty:
+        try:
+            from sklearn.compose import ColumnTransformer
+            from sklearn.preprocessing import OneHotEncoder, StandardScaler
+            from sklearn.linear_model import LogisticRegression
+            from sklearn.pipeline import Pipeline
+
+            # Heuristic target detection
+            candidates = infer_candidate_target_columns(df) + ["Fraud_Label", "label", "target"]
+            target_col = next((c for c in candidates if c in df.columns), None)
+            if target_col is None:
+                binary_candidates = [c for c in df.columns if df[c].dropna().nunique() == 2]
+                target_col = binary_candidates[0] if binary_candidates else None
+            if target_col is not None:
+                X_df = df.drop(columns=[target_col]).copy()
+                y = df[target_col]
+                numeric_cols = X_df.select_dtypes(include=[np.number]).columns.tolist()
+                categorical_cols = [c for c in X_df.columns if c not in numeric_cols]
+                preprocessor = ColumnTransformer(
+                    [
+                        ("num", StandardScaler(), numeric_cols),
+                        ("cat", OneHotEncoder(handle_unknown="ignore", sparse_output=False), categorical_cols),
+                    ],
+                    remainder="drop",
+                )
+                pipeline = Pipeline([("preprocess", preprocessor), ("clf", LogisticRegression(max_iter=1000))])
+                pipeline.fit(X_df, y)
+                st.warning("Using fallback baseline model trained at runtime (saved model failed to load).")
+                model = pipeline
+        except Exception:
+            pass
+
     # Sidebar: navigation + history filters
     st.sidebar.header("Navigation")
     page = st.sidebar.radio("Go to", ("Single Prediction",), index=0)
