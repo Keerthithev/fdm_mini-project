@@ -8,15 +8,28 @@ import pandas as pd
 import streamlit as st
 
 
+@st.cache_resource(show_spinner=False)
 def load_model(model_path: str):
-    """Load a trained model from a joblib file.
+    """Load a trained model from a joblib file with sklearn compatibility shim.
 
-    Supports scikit-learn estimators or Pipelines. Returns None if not found.
+    Returns None if the artifact is missing or cannot be loaded.
     """
     try:
         if not os.path.exists(model_path):
             return None
-        return joblib.load(model_path)
+
+        # Compatibility shim for older sklearn artifacts that reference private symbols
+        try:
+            import sklearn.compose._column_transformer as _ct  # type: ignore
+            if not hasattr(_ct, "_RemainderColsList"):
+                class _RemainderColsList(list):
+                    pass
+                _ct._RemainderColsList = _RemainderColsList  # type: ignore[attr-defined]
+        except Exception:
+            # If sklearn is unavailable or module path changes, proceed; load may still work
+            pass
+
+        return joblib.load(model_path, mmap_mode="r")
     except Exception as exc:  # pragma: no cover
         st.error(f"Failed to load model from {model_path}: {exc}")
         return None
