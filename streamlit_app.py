@@ -649,8 +649,9 @@ def main():
     st.set_page_config(page_title="Fraud Detection", layout="wide")
 
     # Auto-load defaults (no setup UI)
-    default_data_path = "/Users/keerthidev/Desktop/fdm_final/synthetic_fraud_datasets.csv"
-    default_model_path = "/Users/keerthidev/Desktop/fdm_final/fraud_model-3.joblib"
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    default_data_path = os.path.join(base_dir, "synthetic_fraud_datasets.csv")
+    default_model_path = os.path.join(base_dir, "fraud_model-3.joblib")
     model = load_model(default_model_path)
     df = safe_read_csv(default_data_path) if os.path.exists(default_data_path) else None
 
