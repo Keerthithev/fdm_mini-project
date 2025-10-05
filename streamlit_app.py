@@ -35,6 +35,7 @@ def load_model(model_path: str):
         return None
 
 
+@st.cache_data(show_spinner=False)
 def safe_read_csv(file_or_path) -> Optional[pd.DataFrame]:
     try:
         return pd.read_csv(file_or_path)
@@ -685,6 +686,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as exc:
+        import traceback
+        st.error("An unexpected error occurred while running the app.")
+        st.exception(exc)
+        st.text("\n\nTraceback:\n" + "".join(traceback.format_exc()))
 
 
