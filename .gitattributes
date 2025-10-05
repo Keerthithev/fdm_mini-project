@@ -1,0 +1,3 @@
+*.joblib !text !filter !merge !diff
+*.csv !text !filter !merge !diff
+*.ipynb !text !filter !merge !diff
