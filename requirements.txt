@@ -5,3 +5,4 @@ streamlit==1.50.0
 joblib==1.5.2
 matplotlib==3.10.6
 pyarrow==21.0.0
+reportlab==4.2.5
